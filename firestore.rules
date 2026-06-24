@@ -1,0 +1,26 @@
+rules_version = '2';
+
+// Haven journal security rules.
+// A signed-in user can only ever read or write entries that live under
+// their own user document. No one can touch anyone else's journal.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    match /users/{userId} {
+      // The user document itself (profile/preferences) is private to the owner.
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+
+      // Journal entries live in a subcollection scoped to the owner.
+      match /entries/{entryId} {
+        allow read, delete: if request.auth != null && request.auth.uid == userId;
+
+        // On create/update, validate the shape so a client can't write junk.
+        allow create, update: if request.auth != null
+          && request.auth.uid == userId
+          && request.resource.data.body is string
+          && request.resource.data.body.size() <= 20000
+          && request.resource.data.title.size() <= 200;
+      }
+    }
+  }
+}
