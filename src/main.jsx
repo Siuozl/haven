@@ -5,9 +5,13 @@ import App from './App'
 import { AuthProvider } from './context/AuthContext'
 import './styles/global.css'
 
+// Strip any trailing slash so React Router gets a clean basename
+// (it's '/haven' on GitHub Pages, '' in local dev).
+const basename = import.meta.env.BASE_URL.replace(/\/$/, '')
+
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <BrowserRouter>
+    <BrowserRouter basename={basename}>
       <AuthProvider>
         <App />
       </AuthProvider>
